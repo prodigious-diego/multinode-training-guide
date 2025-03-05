@@ -1,3 +1,9 @@
+> [!IMPORTANT]  
+> Our multi-node cluster training product is in early preview and not generally accessible. Please [**contact us**](https://modal.com/slack) for access.
+
+---
+
+
 <p align="center">
   <a href="https://modal.com">
     <img src="https://modal-public-assets.s3.amazonaws.com/bigicon.png" height="96">
