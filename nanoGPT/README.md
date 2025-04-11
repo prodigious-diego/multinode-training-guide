@@ -22,13 +22,39 @@ GPU configurations:
 |------|------------|------|----------|---------|
 | Original modded-nanogpt baseline [llm.c](https://github.com/karpathy/llm.c/discussions/481) | 8x H100 SXM | 2024-05-28 | 45 mins | 1x |
 | Modal nanoGPT (this repo) | 8x A100 80BG SXM | 2025-02-16 | 45.62 mins | 0.99x |
-| Modal nanoGPT (this repo) | 8x H100 SXM | 20250-02-16 | 24.928 mins | 1.805x
-| Modal nanoGPT (this repo) | 8x H**2**00 SXM | 20250-02-16 | 23.97 mins | 1.88x |
-| Modal clustered nanoGPT (this repo) | 2x8xH100 SXM | 2023-11-20 | 36.75 mins | 1.22x ⚠️ |
+| Modal nanoGPT (this repo) | 8x H100 SXM | 2025-02-16 | 24.928 mins | 1.805x
+| Modal nanoGPT (this repo) | 8x H**2**00 SXM | 2025-02-16 | 23.97 mins | 1.88x |
+| Modal clustered nanoGPT (this repo) | 2x8xH100 SXM | 2025-04-11 | 23.41 mins | 1.88x ⚠️ |
+| Modal clustered nanoGPT (this repo) | 4x8xH100 SXM | 2025-04-11 | 46.34 mins | 0.96x ⚠️ | 
 | [modded-nanogpt](https://github.dev/KellerJordan/modded-nanogpt) current record | 8x H100 SXM | 2024-02-01 | 2.997 minutes | 15.015x |
 
 * ⚠️ Multi-node performance is currently suffering a lot from inter-node communication overhead. Run the PyTorch profiler to analyze.
 * There's a lot of room for improvement on single node performance by following [modded-nanogpt's](https://github.dev/KellerJordan/modded-nanogpt) lead.
+
+## Usage on Modal
+
+```bash
+$ modal run modal_train.py::speedrun_multi_node
+✓ Initialized. View run at https://modal.com/apps/modal-labs/main/ap-SC5QsixmBa9SW5jSA2JzjZ
+✓ Created objects.
+├── 🔨 Created mount /home/ubuntu/multinode-training-guide/nanoGPT/modal_train.py
+├── 🔨 Created mount /home/ubuntu/multinode-training-guide/nanoGPT
+├── 🔨 Created function prepare_data.
+├── 🔨 Created function train_single_node.
+├── 🔨 Created function speedrun_single_node.
+├── 🔨 Created function train_multi_node.
+├── 🔨 Created function bench_multi_node.
+├── 🔨 Created function speedrun_multi_node.
+└── 🔨 Created function bench_single_gpu.
+Acknowledged cluster creation request for modal.Function fu-vpGBUl1HuuTAMLrsoRDqrH. Expected p95 wait time: 3.0 minutes.
+Made reservation of 2 GPUType.H100 workers for clustered modal.Function fu-vpGBUl1HuuTAMLrsoRDqrH. Waiting for workers to be ready...
+
+==========
+== CUDA ==
+==========
+...
+...
+```
 
 
 ---
@@ -255,7 +281,3 @@ For some context on this repository, GPT, and language modeling it might be help
 For more questions/discussions feel free to stop by **#nanoGPT** on Discord:
 
 [![](https://dcbadge.vercel.app/api/server/3zy8kqD9Cp?compact=true&style=flat)](https://discord.gg/3zy8kqD9Cp)
-
-## acknowledgements
-
-All nanoGPT experiments are powered by GPUs on [Lambda labs](https://lambdalabs.com), my favorite Cloud GPU provider. Thank you Lambda labs for sponsoring nanoGPT!
