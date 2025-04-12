@@ -7,7 +7,7 @@ import modal.experimental
 
 # Instructions for install flash-attn taken from this Modal guide doc:
 # https://modal.com/docs/guide/cuda#for-more-complex-setups-use-an-officially-supported-cuda-image
-cuda_version = "12.4.0"  # should be no greater than host CUDA version
+cuda_version = "12.6.0"  # should be no greater than host CUDA version
 flavor = "devel"  #  includes full CUDA toolkit
 operating_sys = "ubuntu22.04"
 tag = f"{cuda_version}-{flavor}-{operating_sys}"
@@ -18,7 +18,8 @@ REMOTE_TRAIN_SCRIPT_PATH = "/root/train.py"
 REMOTE_BENCH_SCRIPT_PATH = "/root/bench.py"
 GPU_TYPE = "H100"
 
-image = (
+
+base_image = (
     modal.Image.from_registry(f"nvidia/cuda:{tag}", add_python="3.10")
     # flash-attn has an undeclared dependency on PyPi packages 'torch' and 'packaging',
     # as well as git, requiring that we annoyingly install without it the first time.
@@ -28,10 +29,10 @@ image = (
     # https://github.com/karpathy/nanoGPT?tab=readme-ov-file#install
     # TODO: why doesn't karpathy pin these?
     .pip_install("torch", "transformers", "datasets", "tiktoken", "wandb", "tqdm")
-    .add_local_dir(
-        LOCAL_CODE_DIR,
-        remote_path=REMOTE_CODE_DIR,
-    )
+)
+image = base_image.add_local_dir(
+    LOCAL_CODE_DIR,
+    remote_path=REMOTE_CODE_DIR,
 )
 app = modal.App("nanoGPT", image=image)
 volume = modal.Volume.from_name("nanogpt-multinode-demo", create_if_missing=True)
@@ -41,7 +42,7 @@ volume_model_output = modal.Volume.from_name(
 
 
 # The number of containers (i.e. nodes) in the cluster. This can be between 1 and 8.
-n_nodes = 2
+n_nodes = 4
 # Typically this matches the number of GPUs per container.
 n_proc_per_node = 8
 
@@ -64,6 +65,7 @@ def prepare_data():
     shutil.copy("/root/data/openwebtext/train.bin", "/vol/train.bin")
     shutil.copy("/root/data/openwebtext/val.bin", "/vol/val.bin")
 
+
 def _train_single_node():
     from torch.distributed.run import parse_args, run
 
@@ -76,6 +78,7 @@ def _train_single_node():
     ]
     print(f"Running torchrun with args: {' '.join(args)}")
     run(parse_args(args))
+
 
 @app.function(
     gpu=f"A100:{n_proc_per_node}",
@@ -108,16 +111,50 @@ def train_single_node():
         # Mount a Volume where NanoGPT outputs checkpoints.
         "/root/out": volume_model_output,
     },
-    timeout=2* 60 * 60, # should always be faster than 2 hours
+    timeout=2 * 60 * 60,  # should always be faster than 2 hours
 )
 def speedrun_single_node():
     """
     Follow https://github.dev/KellerJordan/modded-nanogpt's benchmark rules to test
-    multi-node scaling performance. 
+    multi-node scaling performance.
     """
     os.environ["NANOGPT_SPEEDRUN"] = "true"
     _train_single_node()
 
+
+@app.function(
+    gpu=f"H100!:{n_proc_per_node}",
+    mounts=MOUNTS,
+    volumes={
+        "/data/fineweb10B": volume,
+    },
+    timeout=2 * 60 * 60,  # should always be faster than 2 hours
+    image=(
+        base_image.pip_install(
+            "torch==2.7.0.dev20250311+cu126",
+            index_url="https://download.pytorch.org/whl/nightly/cu126",
+        ).add_local_dir(
+            LOCAL_CODE_DIR,
+            remote_path=REMOTE_CODE_DIR,
+        )
+    ),
+)
+def speedrun_modded_single_node():
+    """
+    Running https://github.dev/KellerJordan/modded-nanogpt current record run.
+    """
+    print(os.environ["MODAL_TASK_ID"])
+    from torch.distributed.run import parse_args, run
+
+    # Symlink the training data in our volume to the place that nanoGPT expects it.
+    os.symlink("/vol/train.bin", "/root/data/openwebtext/train.bin")
+    os.symlink("/vol/val.bin", "/root/data/openwebtext/val.bin")
+    args = [
+        f"--nproc-per-node={n_proc_per_node}",
+        "/root/train_modded.py",
+    ]
+    print(f"Running torchrun with args: {' '.join(args)}")
+    run(parse_args(args))
 
 
 def _train_multi_node() -> None:
@@ -150,6 +187,7 @@ def _train_multi_node() -> None:
     ]
     print(f"Running torchrun with args: {' '.join(args)}")
     run(parse_args(args))
+
 
 @app.function(
     gpu=f"{GPU_TYPE}:{n_proc_per_node}",
@@ -206,13 +244,13 @@ def bench_multi_node():
         # Mount a Volume where NanoGPT outputs checkpoints.
         "/root/out": volume_model_output,
     },
-    timeout=2* 60 * 60, # should always be faster than 2 hours
+    timeout=2 * 60 * 60,  # should always be faster than 2 hours
 )
 @modal.experimental.clustered(n_nodes)
 def speedrun_multi_node():
     """
     Follow https://github.dev/KellerJordan/modded-nanogpt's benchmark rules to test
-    multi-node scaling performance. 
+    multi-node scaling performance.
     """
     os.environ["NANOGPT_SPEEDRUN"] = "true"
     _train_multi_node()

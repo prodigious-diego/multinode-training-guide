@@ -18,18 +18,21 @@ GPU configurations:
 
 ### NanoGPT Speedrun Performance
 
-| Name | GPU Config | Date | Duration | Speedup |
-|------|------------|------|----------|---------|
-| Original modded-nanogpt baseline [llm.c](https://github.com/karpathy/llm.c/discussions/481) | 8x H100 SXM | 2024-05-28 | 45 mins | 1x |
-| Modal nanoGPT (this repo) | 8x A100 80BG SXM | 2025-02-16 | 45.62 mins | 0.99x |
-| Modal nanoGPT (this repo) | 8x H100 SXM | 2025-02-16 | 24.928 mins | 1.805x
-| Modal nanoGPT (this repo) | 8x H**2**00 SXM | 2025-02-16 | 23.97 mins | 1.88x |
-| Modal clustered nanoGPT (this repo) | 2x8xH100 SXM | 2025-04-11 | 23.41 mins | 1.88x ⚠️ |
-| Modal clustered nanoGPT (this repo) | 4x8xH100 SXM | 2025-04-11 | 46.34 mins | 0.96x ⚠️ | 
-| [modded-nanogpt](https://github.dev/KellerJordan/modded-nanogpt) current record | 8x H100 SXM | 2024-02-01 | 2.997 minutes | 15.015x |
+| Name | Nodes | GPU Config | Date | Duration | Speedup |
+|------|-------|------------|------|----------|---------|
+| Original modded-nanogpt baseline [llm.c](https://github.com/karpathy/llm.c/discussions/481) | 1 | 8x H100 SXM | 2024-05-28 | 45 mins | 1x |
+| Modal nanoGPT (this repo) | 1 | 8x A100 80BG SXM | 2025-02-16 | 45.62 mins | 0.99x |
+| Modal nanoGPT (this repo) | 1 | 8x H100 SXM | 2025-02-16 | 24.93 mins | 1.805x
+| Modal nanoGPT (this repo) | 1 | 8x H**2**00 SXM | 2025-02-16 | 23.97 mins | 1.88x |
+| Modal clustered nanoGPT (this repo) | 2 | 2x8xH100 SXM | 2025-04-11 | 23.41 mins | 1.88x ⚠️ |
+| Modal clustered nanoGPT (this repo) | 4 | 4x8xH100 SXM | 2025-04-11 | 46.34 mins | 0.96x ⚠️ | 
+| [modded-nanogpt](https://github.dev/KellerJordan/modded-nanogpt) at `64d8eb51` | 1 | 8x H100 SXM | 2025-02-01 | 2.997 mins | 15.01x |
+| [modded-nanogpt](https://github.dev/KellerJordan/modded-nanogpt) at `64d8eb51` (on Modal, `gvisor`) | 1 | 8x H100 SXM | 2025-04-12 | 3.229 mins | 13.93x |
+| [modded-nanogpt](https://github.dev/KellerJordan/modded-nanogpt) at `64d8eb51` (on Modal, `runc`) | 1 | 8x H100 SXM | 2025-04-12 | 3.03 mins | 14.85x |
 
 * ⚠️ Multi-node performance is currently suffering a lot from inter-node communication overhead. Run the PyTorch profiler to analyze.
-* There's a lot of room for improvement on single node performance by following [modded-nanogpt's](https://github.dev/KellerJordan/modded-nanogpt) lead.
+* There's a lot of room for improvement on single node performance by following [modded-nanogpt's](https://github.dev/KellerJordan/modded-nanogpt) lead. See `train_modded.py` for a copy of that repo's current record, modified trivially for running on Modal.
+* To reproduction the `gvisor` modded-nanogpt runs on Modal use `modal run modal_train.py::speedrun_modded_single_node`.
 
 ## Usage on Modal
 
