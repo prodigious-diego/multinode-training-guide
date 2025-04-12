@@ -37,7 +37,7 @@ speedrun_target_eval_loss = 3.28
 # I/O
 out_dir = "out"
 # every how many steps to evaluate val loss? 0 for only at the end
-eval_interval = 2_000 if not speedrun else 125 # 125 is used in modded-nanogpt
+eval_interval = 2_000 if not speedrun else 125  # 125 is used in modded-nanogpt
 log_interval = 1
 eval_iters = 200
 eval_only = False  # if True, script exits right after the first eval
@@ -60,7 +60,9 @@ dropout = 0.0  # for pretraining 0 is good, for finetuning try 0.1+
 bias = False  # do we use bias inside LayerNorm and Linear layers?
 # adamw optimizer
 learning_rate = 6e-4  # max learning rate
-max_iters = int(os.environ.get("NANOGPT_MAX_ITERS", "600000"))  # total number of training iterations
+max_iters = int(
+    os.environ.get("NANOGPT_MAX_ITERS", "600000")
+)  # total number of training iterations
 weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
@@ -312,24 +314,30 @@ num_steps = wait + warmup + active
 if profile:
     print("Profiling NanoGPT model...")
 
+
 def trace_handler(prof):
     print("Handling torch profiler trace...")
     torch.profiler.tensorboard_trace_handler("/root/out/bench_log")(prof)
 
-profiler = nullcontext() if not profile else torch.profiler.profile(
-    activities=[
-        torch.profiler.ProfilerActivity.CPU,
-        torch.profiler.ProfilerActivity.CUDA,
-    ],
-    schedule=torch.profiler.schedule(
-        wait=wait, warmup=warmup, active=active, repeat=repeat
-    ),
-    on_trace_ready=trace_handler,
-    record_shapes=False,
-    profile_memory=False,
-    with_stack=False,  # incurs an additional overhead, disable if not needed
-    with_flops=True,
-    with_modules=False,  # only for torchscript models atm
+
+profiler = (
+    nullcontext()
+    if not profile
+    else torch.profiler.profile(
+        activities=[
+            torch.profiler.ProfilerActivity.CPU,
+            torch.profiler.ProfilerActivity.CUDA,
+        ],
+        schedule=torch.profiler.schedule(
+            wait=wait, warmup=warmup, active=active, repeat=repeat
+        ),
+        on_trace_ready=trace_handler,
+        record_shapes=False,
+        profile_memory=False,
+        with_stack=False,  # incurs an additional overhead, disable if not needed
+        with_flops=True,
+        with_modules=False,  # only for torchscript models atm
+    )
 )
 
 if speedrun and master_process:
@@ -346,7 +354,6 @@ training_time_ms = 0
 # This t0 cares about overall training time, and is used in speedrun mode.
 training_time_t0 = time.perf_counter()
 while True:
-
     with profiler:
         # determine and set the learning rate for this iteration
         lr = get_lr(iter_num) if decay_lr else learning_rate
@@ -364,7 +371,9 @@ while True:
                 f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f} train_time:{training_time_ms:.0f}ms"
             )
             if speedrun and losses["val"] < speedrun_target_eval_loss:
-                print(f"Speedrun target eval loss {speedrun_target_eval_loss} reached! 🏆")
+                print(
+                    f"Speedrun target eval loss {speedrun_target_eval_loss} reached! 🏆"
+                )
                 # we must teardown or else the program will hang waiting for other processes
                 if ddp:
                     destroy_process_group()
@@ -380,7 +389,9 @@ while True:
                         "mfu": running_mfu * 100,  # convert to percentage
                     }
                 )
-            if (losses["val"] < best_val_loss or always_save_checkpoint) and not speedrun:
+            if (
+                losses["val"] < best_val_loss or always_save_checkpoint
+            ) and not speedrun:
                 best_val_loss = losses["val"]
                 if iter_num > 0:
                     checkpoint = {
@@ -439,8 +450,12 @@ while True:
             # scale up to undo the division above, approximating the true total loss (exact would have been a sum)
             lossf = loss.item() * gradient_accumulation_steps
             if local_iter_num >= 5:  # let the training loop settle a bit
-                mfu = raw_model.estimate_mfu(batch_size * gradient_accumulation_steps, dt)
-                running_mfu = mfu if running_mfu == -1.0 else 0.9 * running_mfu + 0.1 * mfu
+                mfu = raw_model.estimate_mfu(
+                    batch_size * gradient_accumulation_steps, dt
+                )
+                running_mfu = (
+                    mfu if running_mfu == -1.0 else 0.9 * running_mfu + 0.1 * mfu
+                )
             print(
                 f"iter {iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms, mfu {running_mfu*100:.2f}%"
             )

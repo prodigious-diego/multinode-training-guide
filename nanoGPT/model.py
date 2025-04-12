@@ -374,7 +374,7 @@ class GPT(nn.Module):
             elif "H100" in gpu_model or "H200" in gpu_model:
                 # See FP16 FLOPS section of H100 datasheet (ignore sparsity)
                 # https://resources.nvidia.com/en-us-tensor-core/nvidia-tensor-core-gpu-datasheet
-                # 
+                #
                 # See FP16 FLOPS section of H200 datasheet. It shows only metric with sparsity enabled. Halve it.
                 # https://nvdam.widen.net/s/nb5zzzsjdf/hpc-datasheet-sc23-h200-datasheet-3002446
                 #
