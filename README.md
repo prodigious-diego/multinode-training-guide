@@ -16,8 +16,10 @@ Use this repository to learn how to build distributed training jobs on Modal.
 
 # Examples
 
-- [**`resnet50/`**](resnet50/) training a ResNet50 model on the ImageNet dataset.
-- [**`nanoGPT/`**](nanoGPT/) training Karpathy's nanoGPT reproduction of OpenAI's GPT-2.
+- [**`benchmark/`**](/benchmark/) contains performance and reliability testing.
+- [**`lightning/`**](/lightning/) a simple lightning.ai Fabric example.
+- [**`resnet50/`**](/resnet50/) training a ResNet50 model on the ImageNet dataset.
+- [**`nanoGPT/`**](/nanoGPT/) training Karpathy's nanoGPT reproduction of OpenAI's GPT-2.
 
 # Documentation
 

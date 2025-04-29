@@ -14,8 +14,16 @@ modal run main.py
 
 The benchmark reports two key metrics:
 
-- **algbw (Algorithm Bandwidth)**: The effective bandwidth from the application's perspective
-- **busbw (Bus Bandwidth)**: The actual hardware bandwidth utilization
+- **algbw (Algorithm Bandwidth)**: The effective bandwidth from the application's perspective.
+- **busbw (Bus Bandwidth)**: The actual hardware bandwidth utilization.
+
+For example:
+
+```
+The average bandwidth of all_reduce with a 4.0GB payload (50 trials, 16 ranks):
+ algbw: 239.742 GBps (1917.9 Gbps)
+ busbw: 449.515 GBps (3596.1 Gbps)
+```
 
 For more details on these metrics, see the [NVIDIA NCCL Tests documentation](https://github.com/NVIDIA/nccl-tests/blob/master/doc/PERFORMANCE.md#bandwidth).
 
