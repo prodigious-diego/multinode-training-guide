@@ -49,7 +49,7 @@ volume_model_output = modal.Volume.from_name(
 
 
 # The number of containers (i.e. nodes) in the cluster. This can be between 1 and 8.
-n_nodes = 2
+n_nodes = 1
 # Typically this matches the number of GPUs per container.
 n_proc_per_node = 8
 
@@ -203,7 +203,7 @@ def _train_multi_node() -> None:
     timeout=60 * 60 * 24,
     cloud="oci",
 )
-@modal.experimental.clustered(n_nodes, rdma=True)
+@modal.experimental.clustered(n_nodes, rdma=False)
 def train_multi_node():
     """
     Train the model on a multi-node cluster with N GPUs per node (typically 8).
@@ -223,7 +223,7 @@ def train_multi_node():
     timeout=60 * 60 * 24,
     cloud="oci",
 )
-@modal.experimental.clustered(n_nodes, rdma=True)
+@modal.experimental.clustered(n_nodes, rdma=False)
 def bench_multi_node():
     """
     Train the model on a multi-node cluster with N GPUs per node (typically 8).
@@ -247,7 +247,7 @@ def bench_multi_node():
     timeout=2 * 60 * 60,  # should always be faster than 2 hours
     cloud="oci",
 )
-@modal.experimental.clustered(n_nodes, rdma=True)
+@modal.experimental.clustered(n_nodes, rdma=False)
 def speedrun_multi_node():
     """
     Follow https://github.dev/KellerJordan/modded-nanogpt's benchmark rules to test
